@@ -6,7 +6,18 @@ type MyHandler struct {
 }
 
 func (MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello world!"))
+	if r.URL.Path == "/" {
+		w.Write([]byte("Home"))
+		return
+	}
+
+	if r.URL.Path == "/hello" {
+		w.Write([]byte("Hello, user"))
+		return
+	}
+
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte("404 Page Not Found"))
 }
 
 func main() {
