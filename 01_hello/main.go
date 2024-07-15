@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+	"strings"
+)
 
 type MyHandler struct {
 }
@@ -11,8 +15,9 @@ func (MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path == "/hello" {
-		w.Write([]byte("Hello, user"))
+	if strings.HasPrefix(r.URL.Path, "/hello/") {
+		name := strings.Split(r.URL.Path, "/")[2]
+		w.Write([]byte(fmt.Sprintf("Hello, %s", name)))
 		return
 	}
 
