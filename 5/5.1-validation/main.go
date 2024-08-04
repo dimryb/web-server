@@ -59,6 +59,16 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	errors, ok := user.Validate().(validation.Errors)
+	if ok {
+		for fieldName, err := range errors {
+			verr, ok := err.(validation.Error)
+			if ok {
+				fmt.Printf("%s: %s, %s\n", verr.Code(), fieldName, verr.Error())
+			}
+		}
+	}
+
 	err = user.Validate()
 
 	if err != nil {
