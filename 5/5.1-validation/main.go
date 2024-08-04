@@ -10,10 +10,10 @@ import (
 )
 
 type User struct {
-	Id    int    `json: "id"  ozzo:"id"`
-	Name  string `json: "name"  ozzo:"имя"`
-	Email string `json: "email"  ozzo:"почта"`
-	Phone string `json: "phone"  ozzo:"телефон"`
+	Id    int    `json:"id"  ozzo:"id"`
+	Name  string `json:"name"  ozzo:"имя"`
+	Email string `json:"email" ozzo:"почта"`
+	Phone string `json:"phone" ozzo:"телефон"`
 }
 
 func (u User) Validate() error {
@@ -45,6 +45,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 			"ok":    false,
 			"error": "method not allowed",
 		})
+		return
 	}
 
 	var user User
