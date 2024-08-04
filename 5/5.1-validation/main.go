@@ -10,21 +10,23 @@ import (
 )
 
 type User struct {
-	Id    int    `json: "id"`
-	Name  string `json: "name"`
-	Email string `json: "email"`
-	Phone string `json: "phone"`
+	Id    int    `json: "id"  ozzo:"id"`
+	Name  string `json: "name"  ozzo:"имя"`
+	Email string `json: "email"  ozzo:"почта"`
+	Phone string `json: "phone"  ozzo:"телефон"`
 }
 
 func (u User) Validate() error {
 	return validation.ValidateStruct(&u,
-		validation.Field(&u.Name, validation.Required, validation.Length(2, 50)),
-		validation.Field(&u.Email, validation.Required, is.Email),
-		validation.Field(&u.Phone, is.E164),
+		validation.Field(&u.Name, validation.Required, validation.Length(2, 50).Error("длина должна быть от 2 до 50 символов")),
+		validation.Field(&u.Email, validation.Required, is.Email.Error("неверный адрес почты")),
+		validation.Field(&u.Phone, is.E164.Error("неверный номер")),
 	)
 }
 
 func main() {
+	validation.ErrorTag = "ozzo"
+
 	http.HandleFunc("/user", UserHandler)
 	err := http.ListenAndServe(":3000", nil)
 	if err != nil {
@@ -37,7 +39,7 @@ func WriteJson(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func UserHandler(w http.ResponseWriter, r * http.Request){
+func UserHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
 			"ok":    false,
@@ -66,9 +68,8 @@ func UserHandler(w http.ResponseWriter, r * http.Request){
 		return
 	}
 
-	fmt.Printf("user %v", user)
+	fmt.Printf("user %v\n", user)
 	WriteJson(w, http.StatusOK, map[string]any{
 		"ok": true,
-
 	})
 }
