@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 )
 
@@ -18,14 +19,14 @@ func main() {
 
 func FormHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(10 * 1024 * 1024)
-	if err == nil {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, err.Error())
 		return
 	}
 
 	file, header, err := r.FormFile("myfile")
-	if err == nil {
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -36,8 +37,9 @@ func FormHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Size", header.Size)
 
 	ext := path.Ext(header.Filename)
-	tempFile, err := ioutil.TempFile("/tmp", "*"+ext)
-	if err == nil {
+	tempDir := os.TempDir()
+	tempFile, err := ioutil.TempFile(tempDir, "*"+ext)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
@@ -47,14 +49,14 @@ func FormHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Save to: ", tempFile.Name())
 
 	bytes, err := io.ReadAll(file)
-	if err == nil {
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
 	}
 
 	_, err = tempFile.Write(bytes)
-	if err == nil {
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
 		return
