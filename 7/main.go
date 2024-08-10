@@ -1,20 +1,25 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"encoding/json"
+	"errors"
+	"io"
 	"log"
 	"net/http"
 )
+
+//curl --cookie "session=123" localhost:3000/getme
 
 func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", HomeHandler)
-	mux.HandleFunc("/foo", FooHandler)
+	mux.HandleFunc("/getme", GetMyHandler)
 
 	middlewares := []func(http.Handler) http.Handler{
 		LoggingMiddleware,
-		SecondMiddleware,
+		AuthMiddleware,
 	}
 
 	handler := http.Handler(mux)
@@ -28,14 +33,38 @@ func main() {
 	}
 }
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("home")
-	w.Write([]byte("Home"))
+type User struct {
+	Id   int
+	Name string
 }
 
-func FooHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("foo")	
-	w.Write([]byte("Foo"))
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	WriteJson(w, map[string]any{
+		"OK": true,
+	})
+}
+
+func GetMyHandler(w http.ResponseWriter, r *http.Request) {
+	user, _ := r.Context().Value("user").(User)
+
+	if user.Id == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		WriteJson(w, map[string]any{
+			"OK":    true,
+			"error": "unauthorized",
+		})
+		return
+	}
+
+	WriteJson(w, map[string]any{
+		"OK":   true,
+		"user": user,
+	})
+}
+
+func WriteJson(w io.Writer, v any) {
+	bytes, _ := json.Marshal(v)
+	w.Write(bytes)
 }
 
 type MyResponseWriter struct {
@@ -56,10 +85,25 @@ func LoggingMiddleware(handler http.Handler) http.Handler {
 	})
 }
 
-func SecondMiddleware(handler http.Handler) http.Handler {
+func AuthMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("before 2")
+		cookie, _ := r.Cookie("session")
+		if cookie != nil {
+			sessionId := cookie.Value
+			user, _ := GetUserBySessionId(sessionId)
+			ctx := r.Context()
+			ctx = context.WithValue(ctx, "user", user)
+			r = r.WithContext(ctx)
+		}
+
 		handler.ServeHTTP(w, r)
-		fmt.Println("after 2")
+
 	})
+}
+
+func GetUserBySessionId(sessionId string) (User, error) {
+	if sessionId == "123" {
+		return User{Id: 1, Name: "admin"}, nil
+	}
+	return User{}, errors.New("session not found")
 }
