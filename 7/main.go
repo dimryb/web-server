@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -12,7 +13,7 @@ func main() {
 	mux.HandleFunc("/foo", FooHandler)
 
 	middlewares := []func(http.Handler) http.Handler{
-		MyMiddleware,
+		LoggingMiddleware,
 		SecondMiddleware,
 	}
 
@@ -33,15 +34,25 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func FooHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("foo")
+	fmt.Println("foo")	
 	w.Write([]byte("Foo"))
 }
 
-func MyMiddleware(handler http.Handler) http.Handler {
+type MyResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (w *MyResponseWriter) WriteHeader(statusCode int) {
+	w.ResponseWriter.WriteHeader(statusCode)
+	w.statusCode = statusCode
+}
+
+func LoggingMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("before")
-		handler.ServeHTTP(w, r)
-		fmt.Println("after")
+		w2 := &MyResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+		handler.ServeHTTP(w2, r)
+		log.Printf("%s : [%d]\n", r.RequestURI, w2.statusCode)
 	})
 }
 
