@@ -1,0 +1,11 @@
+{{range .SomeSlice}}
+    {{.}}
+{{end}}
+
+{{range $x := .SomeSlice}}
+    {{$x}}
+{{end}}
+
+{{range $k, $v := .SomeMap}}
+    {{$k}}: {{$v}}
+{{end}}

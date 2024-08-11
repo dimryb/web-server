@@ -1,0 +1,5 @@
+some text
+
+{{.SomeInt}} {{.SomeString}}
+
+more text
