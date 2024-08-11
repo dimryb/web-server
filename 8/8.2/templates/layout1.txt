@@ -1,0 +1,5 @@
+header
+
+{{template "main" .text}}
+
+footer
