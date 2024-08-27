@@ -4,11 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/joho/godotenv"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/joho/godotenv"
 	"github.com/pressly/goose/v3"
 )
+
+// & "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -h localhost -d go_dev -c "DROP TABLE IF EXISTS users CASCADE;"
 
 func main() {
 	err := godotenv.Load()
@@ -36,7 +39,15 @@ func main() {
 		panic(err)
 	}
 
-	if err := goose.Up(db, "migrations"); err != nil {
+	// Вывод текущей рабочей директории
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	migrationsPath := filepath.Join(cwd, "../../migrations")
+
+	if err := goose.Up(db, migrationsPath); err != nil {
 		panic(err)
 	}
 }
