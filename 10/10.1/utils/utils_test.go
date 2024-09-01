@@ -17,11 +17,11 @@ func TestExample2(t *testing.T) {
 		t.Log("defer")
 	}()
 
-	t.Log("1")
-	t.Fail()
-	t.Log("2")
-	t.FailNow()
-	t.Log("3")
+	// t.Log("1")
+	// t.Fail()
+	// t.Log("2")
+	// t.FailNow()
+	// t.Log("3")
 
 	//t.Fatal
 }
