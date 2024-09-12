@@ -4,6 +4,7 @@ import (
 	"errors"
 	"example/internal/handlers"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
@@ -26,7 +27,7 @@ type Config struct {
 func (config *Config) Load(filename string) error {
 	err := godotenv.Load(filename)
 	if err != nil {
-		return errors.New("eError loading " + filename)
+		return errors.New("Error loading " + filename)
 	}
 
 	databaseUrlFormat := os.Getenv("DATABASE_URL_FORMAT")
@@ -67,4 +68,8 @@ func (app *App) Teardown() error {
 		return err
 	}
 	return sqlDB.Close()
+}
+
+func (app *App) Run() error {
+	return http.ListenAndServe(":3000", app.Router)
 }
